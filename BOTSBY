@@ -1,0 +1,212 @@
+#include <kipr/wombat.h>
+
+//ports
+int lm = 3;  //left motor
+int rm = 0;  // right motor
+
+int left_ir = 5; //left ir 
+int right_ir = 1; //right ir
+int back_range = 0; //back rangefinder
+int left_range = 2; //left rangefinder
+int r_range = 3; //right rangefinder
+
+int arm_base = 1; // base of arm, directly on chassis
+int arm_pivot = 2; //second servo, pivots arm
+int claw = 3; //controls claw opening and closing 
+
+//movement
+int speed = 200; //motor speed
+int fiddle_speed = 50; //used to adjust for stopline
+int turn_speed = 100; //used for turn function
+
+//sensor values
+int tape = 3500; //black tape on ir sensors     ADJUST FOR LIGHT
+//functions
+void stopline(int direction, int speed, int fiddle_speed);
+void drive(int direction, int speed, int distance); // 2000 for distance, 22.4 cm  INPUT IN CM
+void turn(int direction, int turn_speed, int distance);
+
+void stopTuah(int speed, int fiddle_speed);
+void stopTuahLeft(int speed, int fiddle_speed);
+void stopTuahRight(int speed, int fiddle_speed);
+
+void lineCalibration();
+void rangeRead();
+//void start();
+int main()
+{
+    stopTuah(500, 200); //lines up on black line
+	drive(1, 300, 35);
+    turn(-1, 400, 1230);   //moves up and turns right 90
+    stopTuah(900, 50);
+    ao();
+    return 0;
+}
+
+void stopline(int direction, int speed, int fiddle_speed) 
+{
+    if (direction > 0){
+        while ((analog(left_ir) < tape)  ||  (analog(right_ir) < tape) )     //as long as one of the side sensors doesn't hit black
+        {
+            if ((analog(left_ir) < tape)  &&  (analog(right_ir) < tape))       //neither see tape, go foward
+            {
+                mav(lm, speed);
+                mav(rm, speed);
+                msleep(10);
+            }
+            else if ((analog(left_ir) > tape)  &&  (analog(right_ir) < tape)) //if only left sensor reads, move with right foward
+            {
+                mav(lm, 0);
+                mav(rm, fiddle_speed);
+                msleep(10);
+            }
+            else if ((analog(left_ir) < tape)  &&  (analog(right_ir) > tape)) //if only right sensor reads, move with left foward
+            {
+                mav(lm, fiddle_speed);
+                mav(rm, 0);
+                msleep(10);
+            }
+        }
+	}
+        else  {
+    while ((analog(left_ir) < tape)  ||  (analog(right_ir) < tape) )     //as long as one of the side sensors doesn't hit black
+    {
+        if ((analog(left_ir) < tape)  &&  (analog(right_ir) < tape))       //neither see tape, go foward
+        {
+            mav(lm, -speed);
+            mav(rm, -speed);
+            msleep(5);
+        }
+        else if ((analog(left_ir) > tape)  &&  (analog(right_ir) < tape)) //if only left sensor reads, move with right foward
+        {
+            mav(lm, 0);
+            mav(rm, -fiddle_speed);
+            msleep(5);
+        }
+        else if ((analog(left_ir) < tape)  &&  (analog(right_ir) > tape)) //if only right sensor reads, move with left foward
+        {
+            mav(lm, -fiddle_speed);
+            mav(rm, 0);
+            msleep(5);
+        }
+    }
+    }
+}
+void drive(int direction, int speed, int distance)
+{
+    cmpc(lm);
+   cmpc(rm);
+    distance = distance * 101.1206896;
+    if (direction > 0) //forward if 1
+    { 
+        while(( ( abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2 ) < distance) // takes the clear motors clear value and moves until its reached the distance
+        {
+            mav(lm,speed);
+            mav(rm,speed);
+        }
+    }
+    if (direction < 0) //back if 1
+    { 
+        while(( ( abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2 ) < distance) // takes the clear motors clear value and moves until its reached the distance
+        {
+            mav(lm,-speed);
+            mav(rm,-speed);
+        }
+    }
+    cmpc(lm);
+    cmpc(rm);
+}
+void turn (int direction, int turn_speed, int distance)   // positive = CCW, negative = CW +=left - = right
+{
+cmpc(lm);
+cmpc(rm); 
+if (direction < 0) //turn left
+	{
+	while(( (abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2) < distance)
+  		{
+        mav(lm,abs(turn_speed));
+        mav(rm,-abs(turn_speed));
+		} 
+
+	}
+if (direction > 0) // turn right
+	{
+	while(( (abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2) < distance)
+  		{
+        mav(lm,-abs(turn_speed));
+        mav(rm,abs(turn_speed));
+		} 
+
+	}
+cmpc(lm);
+cmpc(rm);
+
+}
+
+void lineCalibration(){
+    stopline (-1, 100, 20); //back up to black line
+    cmpc(lm);
+    cmpc(rm);
+    drive(1, 50, 1);
+    msleep(2000);
+    stopline(1, 100, 20); //move up to black line, measure
+    printf("left: %d\n", gmpc(lm) );
+    printf("right: %d\n", gmpc(rm) );
+}
+
+void rangeRead(){
+	int i = 0;
+    int temp = 0;
+    printf("vars\n");
+	while (i < 2000){
+    temp = temp + analog(0);
+    msleep(1);
+    i++;
+    }
+    printf("looped\n");
+    int printer = temp/2000;
+    printf("reading : %d\n", printer);
+}
+
+
+void stopTuah (int speed, int fiddle_speed){
+	while( (analog(left_ir) < tape)  &&  (analog(right_ir) < tape) ){
+		mav(lm, speed);
+        mav(rm, speed);		
+		msleep(3);
+	}
+    if ( (analog(left_ir) > tape)  &&  (analog(right_ir) < tape) ){
+    	stopTuahLeft(speed, fiddle_speed);
+    }
+    if ( (analog(left_ir) < tape)  &&  (analog(right_ir) > tape) ){
+    	stopTuahRight(speed, fiddle_speed);
+    }
+}
+
+void stopTuahLeft(int speed, int fiddle_speed){ //lines up when left IR hits
+    	while(analog(right_ir) < tape ){
+            while(analog (left_ir) > tape ) {
+                freeze(rm);
+                mav(lm, -fiddle_speed);
+                msleep(1);
+            }
+            while(analog(left_ir) < tape ) {
+            mav(lm, fiddle_speed);
+            mav(rm, fiddle_speed);	
+            }
+        }
+}
+
+void stopTuahRight(int speed, int fiddle_speed){ //lines up when left IR hits
+    	while(analog(left_ir) < tape ){
+            while(analog (right_ir) > tape ) {
+                freeze(lm);
+                mav(rm, -fiddle_speed);
+                msleep(1);
+            }
+            while(analog(right_ir) < tape ) {
+            mav(lm, fiddle_speed);
+            mav(rm, fiddle_speed);	
+            }
+        }
+}
