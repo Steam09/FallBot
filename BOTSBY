@@ -35,10 +35,34 @@ void rangeRead();
 //void start();
 int main()
 {
+    enable_servos(); 
+    set_servo_position(1, 200);
+    msleep(1000);
+    set_servo_position(2, 1800);
+    msleep(1000);  //TEMP, JUST FOR SETUP
+    
+    
     stopTuah(500, 200); //lines up on black line
-	drive(1, 300, 35);
-    turn(-1, 400, 1230);   //moves up and turns right 90
+    drive(1,500, 5);
+    stopTuah(500,200); 
+    drive(-1, 300, 3);
+    turn(-1, 400, 1235);   //, moves to left of lane, moves up, and turns right 90
     stopTuah(900, 50);
+    //GRAB YELLOW CUBE HERE, GRAB POMS HERE
+    ao();
+    msleep(2000);
+    drive(-1, 500, 27);
+    //GRAB RED CUBE HERE< GRAB POMS HERE
+    ao();
+    msleep(2000); 
+    stopTuah(900, 50);
+    drive(1, 800, 34);
+    ao();
+    msleep(2000);
+    //GRAB YELLOW CUBE HERE, GRAB POMS HERE
+    drive(1, 900, 60);
+    turn(-1, 400, 1235);
+    drive(1, 800, 45);
     ao();
     return 0;
 }
