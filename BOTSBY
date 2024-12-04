@@ -4,8 +4,8 @@
 int lm = 3;  //left motor
 int rm = 0;  // right motor
 
-int left_ir = 5; //left ir 
-int right_ir = 0; //right ir
+int left_ir = 2; //left ir CHECK SENSORS
+int right_ir = 1; //right ir CHECK SENSORS
 int r_range = 3; //right rangefinder
 
 int arm_base = 1; // base of arm, directly on chassis
@@ -22,7 +22,7 @@ int fiddle_speed = 50; //used to adjust for stopline
 int turn_speed = 100; //used for turn function
 
 //sensor values
-int tape = 3500; //black tape on ir sensors     ADJUST FOR LIGHT
+int tape = 3300; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300
 //functions
 void drive(int direction, int speed, int distance); // 2000 for distance, 22.4 cm  INPUT IN CM
 void turn(int direction, int turn_speed, int distance);
@@ -38,43 +38,47 @@ void rangeRead();
 //void start();
 int main()
 {
-    enable_servos(); 
-   // set_servo_position(1, 200);
-   // msleep(1000);
-   // set_servo_position(2, 1800);
     set_servo_position(sweep, sweep_in);
     msleep(1000);  //TEMP, JUST FOR SETUP
     
     
     
     stopTuah(500, 200); //lines up on black line
-    drive(1,500, 5);
-    stopTuah(500,200); 
-    drive(-1, 300, 3); 
-    turn(-1, 400, 1235);   //, moves to left of lane, moves up, and turns right 90
+    drive(1,900, 5);
+    stopTuah(800,200); 
+    drive(-1, 300, .5); 
+    turn(-1, 400, 1100);   //, moves to left of lane, moves up, and turns right 90
 
     
-    drive(1, 500, 20.8); //drives to first pom, sweeps
+    drive(1, 800, 20.8); //drives to first pom, sweeps
     sweepWater();
     
-    drive(1, 500, 25.1); //drives to second pom, sweeps
-    sweepWater();                 //FROM START OF MIDDLE LINE TO POM 3 : 19.5 cm, then 24.3cm to POM 4
+    drive(1, 800, 25.3); //drives to second pom, sweeps
+    sweepWater();                 
     
- 	stopTuah(); //heads to middle line
+ 	stopTuah(800, 50); //heads to middle line
+    msleep(2000); //grab yellow cube/poms here
+    printf("Yellow 1/n");
     
-    msleep(2000);
-    drive(-1, 500, 27);
-    //GRAB RED CUBE HERE< GRAB POMS HERE
-    ao();
-    msleep(2000); 
-    stopTuah(900, 50);
-    drive(1, 800, 34);
+    drive(-1, 800, 38); //grab red cubes/poms here  WAS 27
     ao();
     msleep(2000);
-    //GRAB YELLOW CUBE HERE, GRAB POMS HERE
-    drive(1, 900, 60);
-    turn(-1, 400, 1235);
-    drive(1, 800, 45);
+    printf("small cube 1/n");
+    
+    stopTuah(800, 50); //moves up to center line
+    printf("halfway lol /n");
+    msleep(10);
+    
+    drive(1, 900, 13);
+    sweepWater();
+
+  	drive(1, 900,3);
+    ao();
+    msleep(2000); //grab yellow cube 2 here
+    printf("Yellow 2/n");
+    
+    drive(1, 900, 20);
+    sweepWater();
     
     ao();
     return 0;
