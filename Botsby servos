@@ -1,0 +1,169 @@
+//ServoCode function
+#include <kipr/wombat.h>
+
+
+//Change this to 1 to enable debug statements in the console
+//ask Zane and see set_servos function for how it works
+#define DEBUG 0
+
+//global
+int realBase = 1600;
+int realArm = 1900;
+int realClaw = 1997;
+
+
+//ports
+const int lm = 3;           //left motor
+const int rm = 0;           // right motor
+const int rir = 1;      //right ir
+const int lir = 5;      //left ir
+const int br = 0;       //back rangefinder
+const int lr = 2;       //left rangefinder
+const int rr = 3;       //right rangefinder
+const int sweep = 0;
+const int base = 1;
+const int arm = 2;
+const int claw = 3;
+
+//movement
+int l = 1000;       //left motor speed
+int r = 1000;       //right motor speed
+
+//servo values
+const int bStart = 1600;
+const int aStart = 1900;
+
+const int bDrop = 1850; //was 1990, switched to 1850    MATTHEW
+const int aDrop = 250;
+
+const int cOpen = 1997;
+const int cClose = 650;
+
+const int bCloseCube = 1000;
+const int aCloseCube = 1900;
+const int bClosePom = 850;
+const int aClosePom = 1800;
+
+const int bEntree = 1000;
+const int aEntree = 1900;
+
+//MATTHEW ADDS
+const int bPomA = 865;
+const int aPomA = 1835; //values for grabbing the close sets of poms
+
+const int bCubeA = 1035; //values for grabbing small cubes
+const int aCubeA = 1984;
+const int cCubeA = 1400;
+
+//sensor values
+const int tape = 3500;  //value of black tape on ir sensors     ADJUST FOR COMPETITION/SERIOUS RUNS
+
+//function definitions
+int set_servos (int basePos, int armPos, int clawPos, double delay);
+void start_servos();
+
+//---------------------MAIN FUNCTION---------------------
+int main()
+{
+    //start_servos();
+    //msleep(5000);
+    //printf("about to move to middles\n");
+    msleep(500);
+    set_servos(bCubeA, aCubeA, cOpen, 2);
+    printf("open");
+    msleep(500);
+    set_servos(bCubeA, aCubeA, cCubeA, 2);
+    printf("grabbed");
+    msleep(2000);
+    set_servos(bDrop, aDrop, cOpen, 2);
+    printf("dropped");
+    msleep(2000);
+   // printf("-----------------------------GET POMS--------------------------------------------\n");
+    //set_servos((bCloseCube - 200), (aCloseCube + 100), cClose, 2);
+   // set_servos(bCloseCube, aCloseCube, cClose, 2);
+   // printf("------------------------------DEPOSIT POMS-------------------------------------------\n");
+   // msleep(500);
+   // set_servos(bDrop, aDrop, cOpen, 2);
+   // printf("------------------------------RETURN TO DEFAULTS-------------------------------------------\n");
+   // set_servos(bStart, aStart, cOpen, 2);
+   	disable_servos();
+}
+
+
+//--------------------FUNCTIONS-------------------
+void start_servos()
+{
+    enable_servos();
+    set_servo_position(base, realBase);
+    set_servo_position(arm, realArm);
+    set_servo_position(claw, realClaw);
+    msleep(200);
+    disable_servos();
+}
+
+
+int set_servos (int basePos, int armPos, int clawPos, double delay)
+{
+    if (basePos < 50 || basePos > 2000 || armPos < 50 || armPos > 2000 || clawPos < 50 || clawPos > 2000) return -1;
+   
+    //initializing
+    int baseD;
+    int armD;
+    int baseDiff = basePos - realBase;
+    int armDiff = armPos - realArm;
+   
+    if (baseDiff < 0)
+    {
+        baseD = -1;
+    }
+    else
+    {
+        baseD = 1;
+    }
+    if (armDiff < 0)
+    {
+        armD = -1;
+    }
+    else
+    {
+        armD = 1;
+    }
+   
+   
+    //Move base and arm first
+    enable_servo(base);
+    enable_servo(arm);
+
+
+//tells preprocessor ("#" is a preprocessor command) if DEBUG is active, it will add the inside printf statement to the code
+//endif just ends the part to add for debug mode
+#if DEBUG
+    printf("Base Position vs. Real | Arm Position vs Real");
+#endif
+    while (realBase != basePos || realArm != armPos)
+    {
+        if (realBase != basePos) {
+            realBase = realBase + baseD;
+            set_servo_position(base, realBase);
+        }
+        if (realArm != armPos) {
+            realArm = realArm + armD;
+            set_servo_position(arm, realArm);
+        }
+
+
+        msleep(delay);
+#if DEBUG
+        printf(basePos, "/", realBase, " | ", armPos, "/", realArm);
+#endif
+    }
+   
+    //Move claw
+    enable_servo(claw);
+    set_servo_position(claw, clawPos);
+    disable_servo(base);
+    disable_servo(arm);
+   
+    return 0;
+}
+
