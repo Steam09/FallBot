@@ -13,7 +13,7 @@ int arm_pivot = 2; //second servo, pivots arm
 int claw = 3; //controls claw opening and closing
 int sweep = 0;
 
-int sweep_out = 220;
+int sweep_out = 250;
 int sweep_in = 1100;
 
 //movement
@@ -22,7 +22,7 @@ int fiddle_speed = 50; //used to adjust for stopline
 int turn_speed = 100; //used for turn function
 
 //sensor values
-int tape = 3300; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300
+int tape = 3500; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300
 //functions
 void drive(int direction, int speed, int distance); // 2000 for distance, 22.4 cm  INPUT IN CM
 void turn(int direction, int turn_speed, int distance);
@@ -38,6 +38,8 @@ void rangeRead();
 //void start();
 int main()
 {
+    ao();
+    enable_servos(0);
     set_servo_position(sweep, sweep_in);
     msleep(1000);  //TEMP, JUST FOR SETUP
     
@@ -53,26 +55,27 @@ int main()
     drive(1, 800, 20.8); //drives to first pom, sweeps
     sweepWater();
     
-    drive(1, 800, 25.3); //drives to second pom, sweeps
+    drive(1, 800, 25.3);    //drives to second pom, sweeps
     sweepWater();                 
     
  	stopTuah(800, 50); //heads to middle line
-    msleep(2000); //grab yellow cube/poms here
+    ao();
+    msleep(2000);//grab yellow cube/poms here
     printf("Yellow 1/n");
     
-    drive(-1, 800, 38); //grab red cubes/poms here  WAS 27
+    drive(-1, 800, 30); //grab red cubes/poms here  WAS 27
     ao();
-    msleep(2000);
+    msleep(4000);
     printf("small cube 1/n");
     
     stopTuah(800, 50); //moves up to center line
     printf("halfway lol /n");
     msleep(10);
     
-    drive(1, 900, 13);
+    drive(1, 900, 11);
     sweepWater();
 
-  	drive(1, 900,3);
+  	drive(1, 900,1);
     ao();
     msleep(2000); //grab yellow cube 2 here
     printf("Yellow 2/n");
