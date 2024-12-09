@@ -85,6 +85,10 @@ void stopTuahRight(int speed, int fiddle_speed);
 
 void sweepWater();
 
+void grabPomA();
+void grabBigCube();
+void grabCube();
+
 void lineCalibration();
 void rangeRead();
 int set_servos (int basePos, int armPos, int clawPos, double delay);
@@ -135,7 +139,7 @@ int main()
     
     drive(-1, 800, 28); //grab red cubes/poms here  WAS 27
     ao();
-  	set_servos(bPomA,aPomA, cOpen, 2);
+    set_servos(bPomA,aPomA, cOpen, 2);
     set_servos(bPomA,aPomA, cClose, 2);
     set_servos(bDrop, aDrop, cCube, 2);
     printf("small cube 1/n");
@@ -297,9 +301,23 @@ void start(){
     return;
 }
 
+void grabPomA{
+set_servos(bPomA,aPomA, cOpen, 2);
+set_servos(bPomA,aPomA, cClose, 2);
+set_servos(bDrop, aDrop, cCube, 2);
+}
 
+void grabBigCube{
+set_servos(bBigCube, aBigCube, cBigCube, 2); //aliging for yellow cube A
+set_servos(bBigCube, aBigCube, cBigCubeClose, 2); // grabbing yellow cube A
+set_servos(bDrop, aDrop, cOpen, 2);
+}
 
-
+void grabCube{
+set_servos(bPomA,aPomA, cOpen, 2);
+set_servos(bPomA,aPomA, cClose, 2);
+set_servos(bDrop, aDrop, cCube, 2);
+}
 
 
 
