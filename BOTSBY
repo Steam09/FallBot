@@ -1,4 +1,19 @@
 #include <kipr/wombat.h>
+//Set up of food boxes
+
+
+
+/*
+|___________________________________________|
+|    1    |    2     |   3      |    4      | 
+| Blue P  | Yellow CA| YellowCB | Orange P  |
+|===========================================|
+|    5    |    6     |   7      |    8      | 
+| Red C   | Green P  | Red P    | Green C   |
+|___________________________________________|
+
+*/
+
 
 //ports
 int lm = 3;  //left motor
@@ -8,8 +23,8 @@ int left_ir = 2; //left ir CHECK SENSORS
 int right_ir = 1; //right ir CHECK SENSORS
 int r_range = 3; //right rangefinder
 
-int arm_base = 1; // base of arm, directly on chassis
-int arm_pivot = 2; //second servo, pivots arm
+int base = 1; // base of arm, directly on chassis
+int arm = 2; //second servo, pivots arm
 int claw = 3; //controls claw opening and closing
 int sweep = 0;
 
@@ -21,8 +36,45 @@ int speed = 200; //motor speed
 int fiddle_speed = 50; //used to adjust for stopline
 int turn_speed = 100; //used for turn function
 
+
+//servo values
+int realBase = 1600;
+int realArm = 1900;
+int realClaw = 1997;
+const int bStart = 1600;
+const int aStart = 1900;
+
+const int bDrop = 1850; //was 1990, switched to 1850    MATTHEW
+const int aDrop = 250;
+
+const int cOpen = 1997;
+const int cClose = 650;
+
+const int bCloseCube = 1000;
+const int aCloseCube = 1900;
+const int bClosePom = 850;
+const int aClosePom = 1800;
+
+const int bEntree = 1000;
+const int aEntree = 1900;
+
+//MATTHEW ADDS
+const int bPomA = 865;
+const int aPomA = 1835; //values for grabbing the close sets of poms
+
+const int bCube = 1035; //values for grabbing small cubes
+const int aCube = 1984;
+const int cCube = 1400;
+//CROSBY ADDS
+const int bBigCube = 200;
+const int aBigCube = 1070;
+const int cBigCube = 1990;
+
+const int cBigCubeClose = 1350;
 //sensor values
-int tape = 3500; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300
+int tape = 3500; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300, SERIOUS RUNS/ON THE 14TH
+
+
 //functions
 void drive(int direction, int speed, int distance); // 2000 for distance, 22.4 cm  INPUT IN CM
 void turn(int direction, int turn_speed, int distance);
@@ -35,37 +87,57 @@ void sweepWater();
 
 void lineCalibration();
 void rangeRead();
-//void start();
+int set_servos (int basePos, int armPos, int clawPos, double delay);
+//void start(); //setup function(NOT MADE YET)
+void start_servos();
 int main()
 {
     ao();
-    enable_servos(0);
+    start_servos();
+    enable_servos(sweep);
     set_servo_position(sweep, sweep_in);
     msleep(1000);  //TEMP, JUST FOR SETUP
     
-    
-    
     stopTuah(500, 200); //lines up on black line
     drive(1,900, 5);
-    stopTuah(800,200); 
+    msleep(100);
+    stopTuah(800,50); 
     drive(-1, 300, .5); 
-    turn(-1, 400, 1100);   //, moves to left of lane, moves up, and turns right 90
-
+    turn(-1, 400, 1096);   //, moves to left of lane, moves up, and turns right 90 (right is 1095 when lined up with black line correctly
     
-    drive(1, 800, 20.8); //drives to first pom, sweeps
+    drive(1, 800, 20.2); //drives to first pom, sweeps
     sweepWater();
+    turn(-1, 25, 15);
     
-    drive(1, 800, 25.3);    //drives to second pom, sweeps
+    drive(1, 800, 25.9);    //drives to second pom, sweeps
     sweepWater();                 
     
  	stopTuah(800, 50); //heads to middle line
     ao();
-    msleep(2000);//grab yellow cube/poms here
-    printf("Yellow 1/n");
-    
-    drive(-1, 800, 30); //grab red cubes/poms here  WAS 27
+    msleep(100);
+    drive(-1, 400, 2); // driving backto get ingrediets 
     ao();
-    msleep(4000);
+    msleep(500); 
+    set_servos(bBigCube, aBigCube, cBigCube, 2); //aliging for yellow cube A
+    printf("open");
+    msleep(200);
+    set_servos(bBigCube, aBigCube, cBigCubeClose, 2); // grabbing yellow cube A
+    printf("grabbed");
+    msleep(2000);
+    set_servos(bDrop, aDrop, cOpen, 2); // dropping off yellow cube A in Stove 1
+    printf("dropped");
+    msleep(2000);
+    printf("Yellow 1/n");
+    //GRABBED CUBE
+     set_servos(bPomA,aPomA, cOpen, 2);
+    set_servos(bPomA,aPomA, cClose, 2);
+    set_servos(bDrop, aDrop, cClose, 2);
+    
+    drive(-1, 800, 28); //grab red cubes/poms here  WAS 27
+    ao();
+  	set_servos(bPomA,aPomA, cOpen, 2);
+    set_servos(bPomA,aPomA, cClose, 2);
+    set_servos(bDrop, aDrop, cCube, 2);
     printf("small cube 1/n");
     
     stopTuah(800, 50); //moves up to center line
@@ -88,11 +160,18 @@ int main()
 }
 
 
+
+
+
+
+
+
+//--------------functions------------------
 void drive(int direction, int speed, int distance)
 {
     cmpc(lm);
    cmpc(rm);
-    distance = distance * 101.1206896;
+    distance = distance * 100.015873;  //WAS 101.1206896
     if (direction > 0) //forward if 1
     { 
         while(( ( abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2 ) < distance) // takes the clear motors clear value and moves until its reached the distance
@@ -115,7 +194,7 @@ void drive(int direction, int speed, int distance)
 void turn (int direction, int turn_speed, int distance)   // positive = CCW, negative = CW +=left - = right
 {
 cmpc(lm);
-cmpc(rm); 
+cmpc(rm);
 if (direction < 0) //turn left
 	{
 	while(( (abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2) < distance)
@@ -211,4 +290,101 @@ void sweepWater(){
 	set_servo_position(sweep,sweep_out);
 	msleep(200);
     set_servo_position(sweep, sweep_in);
+}
+
+void start(){
+     msleep(100);
+    return;
+}
+
+
+
+
+
+
+
+
+
+//------------------functions(imported from servocode kenny)---------------------------------
+
+
+
+
+
+
+
+
+void start_servos()
+{
+    enable_servos();
+    set_servo_position(base, realBase);
+    set_servo_position(arm, realArm);
+    set_servo_position(claw, realClaw);
+    msleep(200);
+    disable_servos();
+}
+
+int set_servos (int basePos, int armPos, int clawPos, double delay)
+{
+    if (basePos < 50 || basePos > 2000 || armPos < 50 || armPos > 2000 || clawPos < 50 || clawPos > 2000) return -1;
+   
+    //initializing
+    int baseD;
+    int armD;
+    int baseDiff = basePos - realBase;
+    int armDiff = armPos - realArm;
+   
+    if (baseDiff < 0)
+    {
+        baseD = -1;
+    }
+    else
+    {
+        baseD = 1;
+    }
+    if (armDiff < 0)
+    {
+        armD = -1;
+    }
+    else
+    {
+        armD = 1;
+    }
+   
+   
+    //Move base and arm first
+    enable_servo(base);
+    enable_servo(arm);
+
+
+//tells preprocessor ("#" is a preprocessor command) if DEBUG is active, it will add the inside printf statement to the code
+//endif just ends the part to add for debug mode
+#if DEBUG
+    printf("Base Position vs. Real | Arm Position vs Real");
+#endif
+    while (realBase != basePos || realArm != armPos)
+    {
+        if (realBase != basePos) {
+            realBase = realBase + baseD;
+            set_servo_position(base, realBase);
+        }
+        if (realArm != armPos) {
+            realArm = realArm + armD;
+            set_servo_position(arm, realArm);
+        }
+
+
+        msleep(delay);
+#if DEBUG
+        printf(basePos, "/", realBase, " | ", armPos, "/", realArm);
+#endif
+    }
+   
+    //Move claw
+    enable_servo(claw);
+    set_servo_position(claw, clawPos);
+    disable_servo(base);
+    disable_servo(arm);
+   
+    return 0;
 }
