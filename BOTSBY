@@ -66,13 +66,13 @@ const int bCube = 1035; //values for grabbing small cubes
 const int aCube = 1984;
 const int cCube = 1400;
 //CROSBY ADDS
-const int bBigCube = 200;
-const int aBigCube = 1070;
+const int bBigCube = 100;
+const int aBigCube = 600;
 const int cBigCube = 1990;
 
 const int cBigCubeClose = 1350;
 //sensor values
-int tape = 3500; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300, SERIOUS RUNS/ON THE 14TH
+int tape = 2900; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300, SERIOUS RUNS/ON THE 14TH
 
 
 //functions
@@ -85,13 +85,13 @@ void stopTuahRight(int speed, int fiddle_speed);
 
 void sweepWater();
 
-void grabPomA();
-void grabBigCube();
-void grabCube();
-
 void lineCalibration();
 void rangeRead();
 int set_servos (int basePos, int armPos, int clawPos, double delay);
+
+void grabPomA();
+void grabCube();
+void grabBigCube();
 //void start(); //setup function(NOT MADE YET)
 void start_servos();
 int main()
@@ -107,7 +107,7 @@ int main()
     msleep(100);
     stopTuah(800,50); 
     drive(-1, 300, .5); 
-    turn(-1, 400, 1096);   //, moves to left of lane, moves up, and turns right 90 (right is 1095 when lined up with black line correctly
+    turn(-1, 400, 1080);   //, moves to left of lane, moves up, and turns right 90 (right is 1095 when lined up with black line correctly
     
     drive(1, 800, 20.2); //drives to first pom, sweeps
     sweepWater();
@@ -116,32 +116,20 @@ int main()
     drive(1, 800, 25.9);    //drives to second pom, sweeps
     sweepWater();                 
     
- 	stopTuah(800, 50); //heads to middle line
+ 	stopTuah(800, 35); //heads to middle line
     ao();
     msleep(100);
-    drive(-1, 400, 2); // driving backto get ingrediets 
+    drive(-1, 400, 3); // driving backto get ingrediets 
     ao();
-    msleep(500); 
-    set_servos(bBigCube, aBigCube, cBigCube, 2); //aliging for yellow cube A
-    printf("open");
-    msleep(200);
-    set_servos(bBigCube, aBigCube, cBigCubeClose, 2); // grabbing yellow cube A
-    printf("grabbed");
-    msleep(2000);
-    set_servos(bDrop, aDrop, cOpen, 2); // dropping off yellow cube A in Stove 1
-    printf("dropped");
-    msleep(2000);
-    printf("Yellow 1/n");
-    //GRABBED CUBE
-     set_servos(bPomA,aPomA, cOpen, 2);
-    set_servos(bPomA,aPomA, cClose, 2);
-    set_servos(bDrop, aDrop, cClose, 2);
     
+    //GRABS CUBE
+    grabBigCube();
+    printf("Yellow 1/n");
+    
+    grabPomA();
     drive(-1, 800, 28); //grab red cubes/poms here  WAS 27
     ao();
-    set_servos(bPomA,aPomA, cOpen, 2);
-    set_servos(bPomA,aPomA, cClose, 2);
-    set_servos(bDrop, aDrop, cCube, 2);
+  	grabCube();
     printf("small cube 1/n");
     
     stopTuah(800, 50); //moves up to center line
@@ -252,7 +240,7 @@ void stopTuah (int speed, int fiddle_speed){
 	while( (analog(left_ir) < tape)  &&  (analog(right_ir) < tape) ){
 		mav(lm, speed);
         mav(rm, speed);		
-		msleep(3);
+		msleep(10);
 	}
     if ( (analog(left_ir) > tape)  &&  (analog(right_ir) < tape) ){
     	stopTuahLeft(speed, fiddle_speed);
@@ -301,23 +289,26 @@ void start(){
     return;
 }
 
-void grabPomA{
+void grabPomA() {
 set_servos(bPomA,aPomA, cOpen, 2);
 set_servos(bPomA,aPomA, cClose, 2);
-set_servos(bDrop, aDrop, cCube, 2);
+set_servos(bDrop, aDrop, cOpen, 2);
 }
 
-void grabBigCube{
+void grabBigCube() {
 set_servos(bBigCube, aBigCube, cBigCube, 2); //aliging for yellow cube A
 set_servos(bBigCube, aBigCube, cBigCubeClose, 2); // grabbing yellow cube A
 set_servos(bDrop, aDrop, cOpen, 2);
 }
 
-void grabCube{
+void grabCube() {
 set_servos(bPomA,aPomA, cOpen, 2);
-set_servos(bPomA,aPomA, cClose, 2);
-set_servos(bDrop, aDrop, cCube, 2);
+set_servos(bPomA,aPomA, cCube, 2);
+set_servos(bDrop, aDrop, cOpen, 2);
 }
+
+
+
 
 
 
