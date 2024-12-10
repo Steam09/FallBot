@@ -1,7 +1,7 @@
 #include <kipr/wombat.h>
 //Set up of food boxes
 
-
+//MOVE ARM TO CENTER AFTER EACH GRAB
 
 /*
 |___________________________________________|
@@ -16,12 +16,14 @@
 
 
 //ports
+const int lightPort = 0;
 int lm = 3;  //left motor
 int rm = 0;  // right motor
 
 int left_ir = 2; //left ir CHECK SENSORS
 int right_ir = 1; //right ir CHECK SENSORS
-int r_range = 3; //right rangefinder
+int back_left_ir = 4;
+int back_right_ir = 3;
 
 int base = 1; // base of arm, directly on chassis
 int arm = 2; //second servo, pivots arm
@@ -40,37 +42,33 @@ int turn_speed = 100; //used for turn function
 //servo values
 int realBase = 1600;
 int realArm = 1900;
-int realClaw = 1997;
+int realClaw = 1996;
 const int bStart = 1600;
 const int aStart = 1900;
 
-const int bDrop = 1850; //was 1990, switched to 1850    MATTHEW
+const int bCenter = 1250;
+const int aCenter = 1300;
+
+const int bDrop = 1990; //was 1850    MATTHEW
 const int aDrop = 250;
 
-const int cOpen = 1997;
-const int cClose = 650;
+const int cOpen = 1996;
+const int cClose = 150;
 
-const int bCloseCube = 1000;
-const int aCloseCube = 1900;
-const int bClosePom = 850;
-const int aClosePom = 1800;
+const int bPomA = 866;
+const int aPomA = 1836; //values for grabbing the close sets of poms
 
-const int bEntree = 1000;
-const int aEntree = 1900;
-
-//MATTHEW ADDS
-const int bPomA = 865;
-const int aPomA = 1835; //values for grabbing the close sets of poms
-
-const int bCube = 1035; //values for grabbing small cubes
+const int bCube = 1036; //values for grabbing small cubes
 const int aCube = 1984;
-const int cCube = 1400;
-//CROSBY ADDS
-const int bBigCube = 100;
-const int aBigCube = 600;
-const int cBigCube = 1990;
+const int cCube = 600;
 
-const int cBigCubeClose = 1350;
+const int bBigCube = 300;
+const int aBigCube = 900;
+const int cBigCube = 800;
+
+const int bPomB = 150;
+const int aPomB = 900;
+
 //sensor values
 int tape = 2900; //black tape on ir sensors     ADJUST FOR LIGHT; WAS 3300, SERIOUS RUNS/ON THE 14TH
 
@@ -80,89 +78,89 @@ void drive(int direction, int speed, int distance); // 2000 for distance, 22.4 c
 void turn(int direction, int turn_speed, int distance);
 
 void stopTuah(int speed, int fiddle_speed);
-void stopTuahLeft(int speed, int fiddle_speed);
-void stopTuahRight(int speed, int fiddle_speed);
+void stopTuahBack (int speed, int fiddle_speed);
 
 void sweepWater();
 
 void lineCalibration();
 void rangeRead();
-int set_servos (int basePos, int armPos, int clawPos, double delay);
+int set_servos (int basePos, int armPos, int clawPos, double delay);	//YOU CAN ONLY USE EVEN NUMBERS NOW
 
 void grabPomA();
 void grabCube();
 void grabBigCube();
-//void start(); //setup function(NOT MADE YET)
+void grabPomB();
 void start_servos();
+void centerArm();
+
+//void start(); //setup function(NOT MADE YET)
+
 int main()
 {
+    //setup on start code
+    //wait_for_light(lightPort);
+    shut_down_in(199);
     ao();
     start_servos();
     enable_servos(sweep);
     set_servo_position(sweep, sweep_in);
-    msleep(1000);  //TEMP, JUST FOR SETUP
     
-    stopTuah(500, 200); //lines up on black line
+    //Beginning section
+    stopTuah(500, 200);			//lines up on starting box tape
     drive(1,900, 5);
-    msleep(100);
-    stopTuah(800,50); 
-    drive(-1, 300, .5); 
-    turn(-1, 400, 1080);   //, moves to left of lane, moves up, and turns right 90 (right is 1095 when lined up with black line correctly
-    
+    stopTuah(800,15);			//lines up on cup box tape
+    drive(-1, 300, 0.5); 
+    turn(-1, 400, 1080);   		//90 degree turn left
+	
+    //First menu items scored
     drive(1, 800, 20.2); //drives to first pom, sweeps
     sweepWater();
-    turn(-1, 25, 15);
-    
     drive(1, 800, 25.9);    //drives to second pom, sweeps
-    sweepWater();                 
-    
- 	stopTuah(800, 35); //heads to middle line
+    sweepWater();
+    stopTuah(800, 15); //heads to middle line
     ao();
     msleep(100);
-    drive(-1, 400, 3); // driving backto get ingrediets 
+    drive(-1, 400, 3); // driving back to get ingredients 
     ao();
     
     //GRABS CUBE
     grabBigCube();
-    printf("Yellow 1/n");
-    
-    grabPomA();
-    drive(-1, 800, 28); //grab red cubes/poms here  WAS 27
+//    grabPomA(); commented out for time savings
+    drive(-1, 800, 26); //grab red cubes/poms here  WAS 27
     ao();
-  	grabCube();
-    printf("small cube 1/n");
+    grabCube();
+    grabPomB(); //CLEAR 1,5
     
-    stopTuah(800, 50); //moves up to center line
-    printf("halfway lol /n");
+    stopTuah(800, 15); //moves up to center line
     msleep(10);
-    
-    drive(1, 900, 11);
+    drive(1, 900, 11); //sweeps next
     sweepWater();
-
-  	drive(1, 900,1);
+    drive(1, 900,12);
     ao();
-    msleep(2000); //grab yellow cube 2 here
-    printf("Yellow 2/n");
+    grabBigCube();
+    //grabPomA(); //CLEAR 3,7
+    stopTuahBack(800, 15);
     
-    drive(1, 900, 20);
-    sweepWater();
-    
+    drive(1, 900, 12);
+    sweepWater(); //sweeps next
+
+    drive(1, 900, 14);
+    ao();
+    grabPomB();
+
+    drive(1, 900, 30);
+    turn(-1, 400, 1080);
+    drive(1,900,20);
     ao();
     return 0;
 }
-
-
-
-
-
-
 
 
 //--------------functions------------------
 void drive(int direction, int speed, int distance)
 {
     cmpc(lm);
-   cmpc(rm);
+    cmpc(rm);
     distance = distance * 100.015873;  //WAS 101.1206896
     if (direction > 0) //forward if 1
     { 
@@ -185,29 +183,28 @@ void drive(int direction, int speed, int distance)
 }
 void turn (int direction, int turn_speed, int distance)   // positive = CCW, negative = CW +=left - = right
 {
-cmpc(lm);
-cmpc(rm);
-if (direction < 0) //turn left
-	{
-	while(( (abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2) < distance)
-  		{
-        mav(lm,abs(turn_speed));
-        mav(rm,-abs(turn_speed));
-		} 
+    cmpc(lm);
+    cmpc(rm);
+    if (direction < 0) //turn left
+    {
+    	while(( (abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2) < distance)
+        {
+       	    mav(lm,abs(turn_speed));
+            mav(rm,-abs(turn_speed));
+        } 
 
-	}
-if (direction > 0) // turn right
-	{
-	while(( (abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2) < distance)
-  		{
-        mav(lm,-abs(turn_speed));
-        mav(rm,abs(turn_speed));
-		} 
+    }
+    if (direction > 0) // turn right
+    {
+        while(( (abs(gmpc(rm)) + abs(gmpc(lm)) ) / 2) < distance)
+        {
+            mav(lm,-abs(turn_speed));
+            mav(rm,abs(turn_speed));
+        } 
 
-	}
-cmpc(lm);
-cmpc(rm);
-
+    }
+    cmpc(lm);
+    cmpc(rm);
 }
 
 void lineCalibration(){
@@ -242,16 +239,11 @@ void stopTuah (int speed, int fiddle_speed){
         mav(rm, speed);		
 		msleep(10);
 	}
+    
+    //if left sensor hits tape first
     if ( (analog(left_ir) > tape)  &&  (analog(right_ir) < tape) ){
-    	stopTuahLeft(speed, fiddle_speed);
-    }
-    if ( (analog(left_ir) < tape)  &&  (analog(right_ir) > tape) ){
-    	stopTuahRight(speed, fiddle_speed);
-    }
-}
-
-void stopTuahLeft(int speed, int fiddle_speed){ //lines up when left IR hits
-    	while(analog(right_ir) < tape ){
+    	//Stop tuahs left
+        while(analog(right_ir) < tape ){
             while(analog (left_ir) > tape ) {
                 freeze(rm);
                 mav(lm, -fiddle_speed);
@@ -262,10 +254,11 @@ void stopTuahLeft(int speed, int fiddle_speed){ //lines up when left IR hits
             mav(rm, fiddle_speed);	
             }
         }
-}
-
-void stopTuahRight(int speed, int fiddle_speed){ //lines up when left IR hits
-    	while(analog(left_ir) < tape ){
+    }
+    //if right sensor hits tape first
+    if ( (analog(left_ir) < tape)  &&  (analog(right_ir) > tape) ){
+    	//Stop tuahs right
+        while(analog(left_ir) < tape ){
             while(analog (right_ir) > tape ) {
                 freeze(lm);
                 mav(rm, -fiddle_speed);
@@ -276,6 +269,46 @@ void stopTuahRight(int speed, int fiddle_speed){ //lines up when left IR hits
             mav(rm, fiddle_speed);	
             }
         }
+    }
+}
+
+void stopTuahBack (int speed, int fiddle_speed){
+	while( (analog(back_left_ir) < tape)  &&  (analog(back_right_ir) < tape) ){
+		mav(lm, -speed);
+        mav(rm, -speed);		
+		msleep(10);
+	}
+    
+    //if left sensor hits tape first
+    if ( (analog(back_left_ir) > tape)  &&  (analog(back_right_ir) < tape) ){
+    	//Stop tuahs left
+        while(analog(back_right_ir) < tape ){
+            while(analog (back_left_ir) > tape ) {
+                freeze(rm);
+                mav(lm, fiddle_speed);
+                msleep(1);
+            }
+            while(analog(back_left_ir) < tape ) {
+            mav(lm, -fiddle_speed);
+            mav(rm, -fiddle_speed);	
+            }
+        }
+    }
+    //if right sensor hits tape first
+    if ( (analog(back_left_ir) < tape)  &&  (analog(back_right_ir) > tape) ){
+    	//Stop tuahs right
+        while(analog(back_left_ir) < tape ){
+            while(analog (back_right_ir) > tape ) {
+                freeze(lm);
+                mav(rm, fiddle_speed);
+                msleep(1);
+            }
+            while(analog(back_right_ir) < tape ) {
+            mav(lm, -fiddle_speed);
+            mav(rm, -fiddle_speed);	
+            }
+        }
+    }
 }
 
 void sweepWater(){
@@ -286,42 +319,37 @@ void sweepWater(){
 
 void start(){
      msleep(100);
-    return;
 }
 
 void grabPomA() {
-set_servos(bPomA,aPomA, cOpen, 2);
-set_servos(bPomA,aPomA, cClose, 2);
-set_servos(bDrop, aDrop, cOpen, 2);
+    set_servos(bPomA,aPomA, cOpen, 2);
+    set_servos(bPomA,aPomA, cClose, 2);
+    drive(-1, 900, 8);	//moves after grabbing to position for a safe drop
+    ao();
+    set_servos(bDrop, aDrop, cOpen, 2);
+    set_servos(bCenter, aCenter, cOpen, 2);
+}
+
+void grabPomB(){
+    set_servos(bPomB,aPomB, cOpen, 2);
+    set_servos(bPomB,aPomB, cClose, 2);
+    set_servos(bDrop, aDrop, cOpen, 2);
+    set_servos(bCenter, aCenter, cOpen, 2);
 }
 
 void grabBigCube() {
-set_servos(bBigCube, aBigCube, cBigCube, 2); //aliging for yellow cube A
-set_servos(bBigCube, aBigCube, cBigCubeClose, 2); // grabbing yellow cube A
-set_servos(bDrop, aDrop, cOpen, 2);
+    set_servos(bBigCube, aBigCube, cOpen, 2); //aliging for yellow cube A
+    set_servos(bBigCube, aBigCube, cBigCube, 2); // grabbing yellow cube A
+    set_servos(bDrop, aDrop, cOpen, 2);
+    set_servos(bCenter, aCenter, cOpen, 1);
 }
 
 void grabCube() {
-set_servos(bPomA,aPomA, cOpen, 2);
-set_servos(bPomA,aPomA, cCube, 2);
-set_servos(bDrop, aDrop, cOpen, 2);
+    set_servos(bPomA,aPomA, cOpen, 2);
+    set_servos(bPomA,aPomA, cCube, 2);
+    set_servos(bDrop, aDrop, cOpen, 2);
+    set_servos(bCenter, aCenter, cOpen, 1);
 }
-
-
-
-
-
-
-
-
-//------------------functions(imported from servocode kenny)---------------------------------
-
-
-
-
-
-
-
 
 void start_servos()
 {
@@ -333,8 +361,13 @@ void start_servos()
     disable_servos();
 }
 
+void center_arm() {
+	set_servos(bCenter, aCenter, cOpen, 1);
+}
+
 int set_servos (int basePos, int armPos, int clawPos, double delay)
 {
+    //guard clause, if base, arm, or claw is too small or large, function exits with -1
     if (basePos < 50 || basePos > 2000 || armPos < 50 || armPos > 2000 || clawPos < 50 || clawPos > 2000) return -1;
    
     //initializing
@@ -345,19 +378,19 @@ int set_servos (int basePos, int armPos, int clawPos, double delay)
    
     if (baseDiff < 0)
     {
-        baseD = -1;
+        baseD = -2;
     }
     else
     {
-        baseD = 1;
+        baseD = 2;
     }
     if (armDiff < 0)
     {
-        armD = -1;
+        armD = -2;
     }
     else
     {
-        armD = 1;
+        armD = 2;
     }
    
    
@@ -365,12 +398,6 @@ int set_servos (int basePos, int armPos, int clawPos, double delay)
     enable_servo(base);
     enable_servo(arm);
 
-
-//tells preprocessor ("#" is a preprocessor command) if DEBUG is active, it will add the inside printf statement to the code
-//endif just ends the part to add for debug mode
-#if DEBUG
-    printf("Base Position vs. Real | Arm Position vs Real");
-#endif
     while (realBase != basePos || realArm != armPos)
     {
         if (realBase != basePos) {
@@ -384,14 +411,12 @@ int set_servos (int basePos, int armPos, int clawPos, double delay)
 
 
         msleep(delay);
-#if DEBUG
-        printf(basePos, "/", realBase, " | ", armPos, "/", realArm);
-#endif
     }
-   
-    //Move claw
+    
+    //Move claw instantly
     enable_servo(claw);
     set_servo_position(claw, clawPos);
+    msleep(200);
     disable_servo(base);
     disable_servo(arm);
    
