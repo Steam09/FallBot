@@ -1,0 +1,252 @@
+#include <kipr/wombat.h>
+
+const int frontLeftWheel    = 3;
+const int frontRightWheel   = 1;
+const int backLeftWheel     = 2;
+const int backRightWheel    = 0;
+
+const int bottomServo        = 0;
+const int topServo          = 1;
+
+const int frontLeftTape     = 1;
+const int frontRightTape    = 0;
+
+const int frontLeftButton = 1;
+const int frontRightButton = 0;
+const int backLeftButton = 3;
+const int backRightButton = 2;
+
+const int whiteTapeValue = 3500;
+
+int slowSpeed = 5;
+
+void driveRight(int distance);
+void driveForwards(int distance);
+void driveLeft(int distance);
+void driveBackwards(int distance);
+void rotateLeft(int time);
+void rotateRight(int time);
+void startFunction();
+void closeClaw();
+void openClaw();
+
+void frontAlign();
+void backAlign();
+
+void pickUpSeasonings();
+
+void rightSeasoning();
+void leftSeasoning();
+void botGuy();
+
+void servoPos(int port, int endPos, int speed); // higher == faster, 50 max
+
+int abovePVC    = 1730;
+int onPVC       = 1800;
+int airPos      = 1000;
+
+int eyesPos     = 1300;
+
+int closedPos   = 200;
+int openPos     = 1200;
+
+int main() {
+
+    startFunction();
+
+    rightSeasoning();
+    driveBackwards(40);
+    rotateRight(90);
+
+    botGuy();
+
+
+    leftSeasoning();
+
+}
+
+void rightSeasoning() {
+    
+    servoPos(bottomServo, abovePVC, 30);
+    servoPos(topServo, openPos, 40);
+
+    driveForwards(450);
+    frontAlign(); // hit the wall
+    driveBackwards(35);
+
+    servoPos(bottomServo, onPVC, 20);
+    servoPos(topServo, closedPos, 40);
+    servoPos(bottomServo, airPos, 30);
+
+    driveBackwards(350);
+    backAlign(); // go back to starting position
+    driveForwards(20);
+    driveLeft(10);
+    rotateLeft(90);
+    driveForwards(50);
+    frontAlign(); // hit the side of the stove
+    driveBackwards(10);
+
+    servoPos(bottomServo, abovePVC, 20);
+    servoPos(topServo, openPos, 40);
+    servoPos(bottomServo, airPos, 30);
+    servoPos(topServo, closedPos, 40);
+    printf("Put seasoning right in!\n");
+
+}
+
+void leftSeasoning() {
+    servoPos(bottomServo, abovePVC, 30);
+}
+
+void botGuy() {
+
+    servoPos(bottomServo, airPos, 30);
+    driveForwards(350);
+    frontAlign();
+
+    driveBackwards(30);
+    servoPos(topServo, openPos, 40);
+    servoPos(bottomServo, eyesPos, 40);
+    servoPos(topServo, closedPos, 40);
+    servoPos(bottomServo, airPos, 20);
+
+    driveBackwards(300);
+    backAlign();
+    driveForwards(20);
+    turnLeft(90);
+    driveForwards(30);
+    frontAlign();
+
+    driveBackwards(20);
+    servoPos(bottomServo, abovePVC, 20);
+    servoPos(topServo, openPos, 40);
+    servoPos(bottomServo, airPos, 30);
+    servoPos(topServo, closedPos, 40);
+    printf("Put botguy right in!\n");
+
+}
+
+void pickUpSeasonings() {
+    int backUpSpeed = 3;
+    move_at_velocity(frontLeftWheel, -1 * backUpSpeed);
+    move_at_velocity(frontRightWheel, -1 * backUpSpeed);
+    move_at_velocity(backLeftWheel, -1 * backUpSpeed);
+    move_at_velocity(backRightWheel, -1 * backUpSpeed);
+    enable_servo(bottomServo);
+    for (int i = 0; i < 50; i++) {
+        set_servo_position(bottomServo, (airPos - onPVC)/50);
+        msleep(50);
+    }
+    set_servo_position(bottomServo, airPos);
+    printf("grabbed seasonings!");
+    msleep(500);
+    disable_servo(bottomServo);
+}
+
+void frontAlign() {
+    move_at_velocity(frontLeftWheel, slowSpeed);
+    move_at_velocity(frontRightWheel, slowSpeed);
+    move_at_velocity(backLeftWheel, slowSpeed);
+    move_at_velocity(backRightWheel, slowSpeed);
+    while ((frontLeftButton == 0) || (frontRightButton == 0)) {
+        msleep(5);
+    }
+    ao();
+    printf("hit a front wall!\n");
+}
+
+void backAlign() {
+    move_at_velocity(frontLeftWheel, -1 * slowSpeed);
+    move_at_velocity(frontRightWheel, -1 * slowSpeed);
+    move_at_velocity(backLeftWheel, -1 * slowSpeed);
+    move_at_velocity(backRightWheel, -1 * slowSpeed);
+    while ((backLeftButton == 0) || (backRightButton == 0)) {
+        msleep(5);
+    }
+    ao();
+    printf("hit a back wall!\n");
+}
+
+void driveForwards(int distance) {
+    motor(frontLeftWheel, 100);
+    motor(backRightWheel, 100);
+    motor(frontRightWheel, 100);
+    motor(backLeftWheel, 100);
+    msleep(distance * 10);
+    ao();
+    msleep(300);
+}
+
+void driveBackwards(int distance) {
+    motor(frontLeftWheel, -100);
+    motor(backRightWheel, -100);
+    motor(frontRightWheel, -100);
+    motor(backLeftWheel, -100);
+    msleep(distance * 10);
+    ao();
+    printf("drove backwards %d units", distance);
+    msleep(300);
+}
+
+void driveLeft() {
+    motor(frontLeftWheel, -100);
+    motor(backRightWheel, -100);
+    motor(frontRightWheel, 100);
+    motor(backLeftWheel, 100);
+    msleep(distance * 10);
+    ao();
+    msleep(300);
+}
+
+void driveRight() {
+    motor(frontLeftWheel, 100);
+    motor(backRightWheel, 100);
+    motor(frontRightWheel, -100);
+    motor(backLeftWheel, -100);
+    msleep(distance * 10);
+    ao();
+    msleep(300);
+}
+
+void startFunction() {
+    enable_servos();
+    set_servo_position(bottomServo, 1800);
+    set_servo_position(topServo, 1300);
+    msleep(500);
+    disable_servos();
+    ao();
+    start_light();
+}
+
+void rotateLeft(int time) {
+    motor(frontLeftWheel, 0);
+    motor(backRightWheel, 0);
+    motor(frontRightWheel, 100);
+    motor(backLeftWheel, -100);
+    msleep(time*18.333);
+    ao();
+}
+
+void rotateRight(int time) {
+    motor(frontLeftWheel, 0);
+    motor(backRightWheel, 0);
+    motor(frontRightWheel, -100);
+    motor(backLeftWheel, 100);
+    msleep(time*18.333);
+    ao();
+}
+
+void servoPos(int port, int endPos, int speed) {
+    enable_servo(port);
+    int currentPos = get_servo_position(port);
+    int deltaPos = endPos - currentPos;
+    for (int i = 0; i < 51 - speed; i++) {
+        set_servo_position(port, currentPos + deltaPos * (i + 1));
+        msleep(1000 / (51 - speed));
+    }
+    set_servo_position(port, endPos);
+    msleep(500);
+    printf("set servo %d to position %d\n", port, endPos);
+    disable_servo(port);
+}
