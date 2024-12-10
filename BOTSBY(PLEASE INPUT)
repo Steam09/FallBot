@@ -106,12 +106,10 @@ int main()
     
     drive(1, 800, 20.2); //drives to first pom, sweeps
     sweepWater();
-    turn(-1, 25, 15);
-    
+    turn(-1, 25, 15); //BEWARE OF THIS
     drive(1, 800, 25.9);    //drives to second pom, sweeps
-    sweepWater();                 
-    
- 	stopTuah(800, 35); //heads to middle line
+    sweepWater();
+    stopTuah(800, 35); //heads to middle line
     ao();
     msleep(100);
     drive(-1, 400, 3); // driving back to get ingredients 
@@ -122,23 +120,27 @@ int main()
     grabPomA(); //CLEAR 2, 6
     drive(-1, 800, 28); //grab red cubes/poms here  WAS 27
     ao();
-  	grabCube();
+    grabCube();
     grabPomB(); //CLEAR 1,5
     
     stopTuah(800, 50); //moves up to center line
     msleep(10);
-    
     drive(1, 900, 11); //sweeps next
     sweepWater();
-
-  	drive(1, 900,1);
+    drive(1, 900,1);
     ao();
     grabBigCube();
     grabPomA(); //CLEAR 3,7
     
     drive(1, 900, 20);
     sweepWater(); //sweeps next
-    
+
+    drive(1, 900, 3);
+    grabPomB();
+
+    drive(1, 900, 30);
+    turn(-1, 400, 1080);
+    drive(1,900,20);
     ao();
     return 0;
 }
