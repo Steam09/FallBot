@@ -43,6 +43,8 @@ int turn_speed = 100; //used for turn function
 int realBase = 1600;
 int realArm = 1900;
 int realClaw = 1996;
+int realSweep = 1100;
+
 const int bStart = 1600;
 const int aStart = 1900;
 
@@ -81,6 +83,7 @@ void stopTuah(int speed, int fiddle_speed);
 void stopTuahBack (int speed, int fiddle_speed);
 
 void sweepWater();
+void sweep2();
 
 void lineCalibration();
 void rangeRead();
@@ -92,6 +95,7 @@ void grabBigCube();
 void grabPomB();
 void start_servos();
 void centerArm();
+int sweepn(int sweepPos, int delay);
 
 //void start(); //setup function(NOT MADE YET)
 
@@ -101,15 +105,25 @@ int main()
     //wait_for_light(lightPort);
     shut_down_in(199);
     ao();
+    //sweep2();
+   // msleep(8000);
+    
+    
     start_servos();
     enable_servos(sweep);
-    set_servo_position(sweep, sweep_in);
+    set_servo_position(sweep, realSweep);
+    
+    sweepn(250, 5);
+    sweepn(1100, 5);
+    sweepn(250, 5);
+    sweepn(1100, 5);
+    
     
     //Beginning section
     stopTuah(500, 200);			//lines up on starting box tape
     drive(1,900, 5);
     stopTuah(800,15);			//lines up on cup box tape
-    drive(-1, 300, 0.5); 
+    drive(-1, 300, 1.5); 
     turn(-1, 400, 1080);   		//90 degree turn left
 	
     //First menu items scored
@@ -128,8 +142,9 @@ int main()
 //    grabPomA(); commented out for time savings
     drive(-1, 800, 26); //grab red cubes/poms here  WAS 27
     ao();
+    grabPomB();
     grabCube();
-    grabPomB(); //CLEAR 1,5
+    //CLEAR 1,5
     
     stopTuah(800, 15); //moves up to center line
     msleep(10);
@@ -144,13 +159,15 @@ int main()
     drive(1, 900, 12);
     sweepWater(); //sweeps next
 
-    drive(1, 900, 14);
+    drive(1, 900, 12);
     ao();
     grabPomB();
+    grabCube();
 
-    drive(1, 900, 30);
+    drive(1, 900, 40);
     turn(-1, 400, 1080);
-    drive(1,900,20);
+    start_servos();
+    drive(1,900,42);
     ao();
     return 0;
 }
@@ -365,6 +382,37 @@ void center_arm() {
 	set_servos(bCenter, aCenter, cOpen, 1);
 }
 
+int sweepn(int sweepPos, int delay) {
+	//guard clause, if base, arm, or claw is too small or large, function exits with -1
+    if (sweepPos < 50 || sweepPos > 1600 return -1;
+   
+    //initializing
+    int sweepD;
+    int sweepDiff = sweepPos - realSweep;
+   
+    if (sweepDiff < 0)
+    {
+        sweepD = -2;
+    }
+    else
+    {
+        sweepD = 2;
+    }
+   
+   
+    //Move base and arm first
+    enable_servo(sweep);
+	
+    //increments sweep by its direction
+    while (realSweep != sweepPos)
+    {
+        if (realSweep != sweepPos) {
+            realSweep = realSweep + sweepD;
+            set_servo_position(base, realBase);
+        }
+        msleep(delay);
+}
+        
 int set_servos (int basePos, int armPos, int clawPos, double delay)
 {
     //guard clause, if base, arm, or claw is too small or large, function exits with -1
