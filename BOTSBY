@@ -30,8 +30,8 @@ int arm = 2; //second servo, pivots arm
 int claw = 3; //controls claw opening and closing
 int sweep = 0;
 
-int sweep_out = 880; //1740
-int sweep_in = 1740; //
+int sweep_out = 300; //1740
+int sweep_in = 1600; //
 
 //movement
 int speed = 200; //motor speed
@@ -43,7 +43,7 @@ int turn_speed = 100; //used for turn function
 int realBase = 1600;
 int realArm = 1900;
 int realClaw = 1996;
-int realSweep = 1740;
+int realSweep = 1101;
 
 const int bStart = 1600;
 const int aStart = 1900;
@@ -96,19 +96,19 @@ void grabBigCube2();
 int main()
 {
  	start_servos();
-    //wait_for_light(lightPort);
-    shut_down_in(199);
+wait_for_light(lightPort);
+  shut_down_in(199);
     enable_servos(sweep);
     set_servo_position(sweep, realSweep);
     
     //Beginning section
     stopTuah(800, 200);			//lines up on starting box tape
     drive(1,900, 30);
-    stopTuah(800,15);			//lines up on cup box tape
+    stopTuah(300,15);			//lines up on cup box tape
     drive(-1, 300, 1.5); 
     turn(-1, 400, 1095);   		//90 degree turn left changed from 1080 to 1095
 	
-    //First menu items scored + water poms
+    //First Section
     drive(1, 800, 19);
     sweepWater();			//first water
     drive(1, 800, 12); 
@@ -118,34 +118,40 @@ int main()
     ao();
     grabCube();
     
-    //Second Items and entree
-    drive(1, 800, 12);
+    //Second Section
+    drive(1, 800, 10);
     sweepWater();			//second water CHANGE THE VALUE OF HOW FAR THE SERVO GOES, IT WAS REPLACED
-    drive(1, 800, 13);
+    drive(1, 800, 15);
     ao();
     grabBigCube2();			//first entree (Cube2, has a backwards inch bc the cube was on the black line many times)
+    grabPomA();
     drive(1, 900, 15);
     printf("halfway on board");
     sweepWater();	//third water
     
     //Third section
     drive(1, 900, 15);
-    stopTuahBack(800, 15);	//lines up far side of middle line
-	ao();
+    stopTuahBack(400, 15);	//lines up far side of middle line
+    ao();
     grabBigCube();
+    grabPomA();
     
     //Fourth section
-    drive(1, 900, 22);
-    sweepWater(); //fourth water
-    ao();
-    grabPomB();				//collecting green cubes and orange poms
-    grabCube();
-    //Driving to end box and resetting
     drive(1, 900, 10);
-    turn(-1, 400, 540);
-    start_servos();
-    drive(1,900,50);
+    sweepWater(); //fourth water
+    drive(1, 900, 12);
     ao();
+    grabPomB();
+    drive(1, 800, 1); 
+    ao();                                     //collecting green cubes and orange poms
+    grabCube();
+    
+    //Driving to end box and resetting
+    drive(1, 900, 35);
+    turn(-1, 400, 1025);
+    drive (1, 900, 40);
+    ao();
+    start_servos();
     return 0;
 }
 
@@ -321,6 +327,8 @@ void grabPomA() {
     ao();
     set_servos(bDrop, aDrop, cOpen, 2);
     set_servos(bCenter, aCenter, cOpen, 2);
+    drive(1, 900, 8);
+    ao();
 }
 
 void grabPomB(){
