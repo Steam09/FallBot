@@ -31,7 +31,7 @@ int claw = 3; //controls claw opening and closing
 int sweep = 0;
 
 int sweep_out = 300; //1740
-int sweep_in = 1600; //
+int sweep_in = 1850; //
 
 //movement
 int speed = 200; //motor speed
@@ -43,7 +43,7 @@ int turn_speed = 100; //used for turn function
 int realBase = 1600;
 int realArm = 1900;
 int realClaw = 1996;
-int realSweep = 1101;
+int realSweep = 1850;
 
 const int bStart = 1600;
 const int aStart = 1900;
@@ -60,8 +60,8 @@ const int cClose = 150;
 const int bPomA = 866;
 const int aPomA = 1836; //values for grabbing the close sets of poms
 
-const int bCube = 1036; //values for grabbing small cubes
-const int aCube = 1984;
+const int bCube = 840; //values for grabbing small cubes
+const int aCube = 1748;
 const int cCube = 600;
 
 const int bBigCube = 300;
@@ -96,10 +96,8 @@ void grabBigCube2();
 int main()
 {
  	start_servos();
-wait_for_light(lightPort);
-  shut_down_in(199);
-    enable_servos(sweep);
-    set_servo_position(sweep, realSweep);
+	//wait_for_light(lightPort);
+    shut_down_in(199);
     
     //Beginning section
     stopTuah(800, 200);			//lines up on starting box tape
@@ -130,14 +128,16 @@ wait_for_light(lightPort);
     sweepWater();	//third water
     
     //Third section
-    drive(1, 900, 15);
+    drive(1, 900, 17);
     stopTuahBack(400, 15);	//lines up far side of middle line
     ao();
     grabBigCube();
+    drive(-1, 900, 1);
+    ao();
     grabPomA();
     
     //Fourth section
-    drive(1, 900, 10);
+    drive(1, 900, 11);
     sweepWater(); //fourth water
     drive(1, 900, 12);
     ao();
@@ -147,9 +147,11 @@ wait_for_light(lightPort);
     grabCube();
     
     //Driving to end box and resetting
-    drive(1, 900, 35);
-    turn(-1, 400, 1025);
-    drive (1, 900, 40);
+    turn(-1, 600, 350);
+    drive(1, 900, 20);
+    turn(-1, 600, 640);
+    drive(1, 1000, 33);
+    set_servo_position(sweep, realSweep);
     ao();
     start_servos();
     return 0;
@@ -323,11 +325,11 @@ void sweepWater(){
 void grabPomA() {
     set_servos(bPomA,aPomA, cOpen, 2);
     set_servos(bPomA,aPomA, cClose, 2);
-    drive(-1, 900, 8);	//moves after grabbing to position for a safe drop
+    drive(-1, 900, 6);	//moves after grabbing to position for a safe drop
     ao();
     set_servos(bDrop, aDrop, cOpen, 2);
     set_servos(bCenter, aCenter, cOpen, 2);
-    drive(1, 900, 8);
+    drive(1, 900, 6);
     ao();
 }
 
@@ -342,20 +344,20 @@ void grabBigCube() {
     set_servos(bBigCube, aBigCube, cOpen, 2); //aliging for yellow cube A
     set_servos(bBigCube, aBigCube, cBigCube, 2); // grabbing yellow cube A
     set_servos(bDrop, aDrop, cOpen, 2);
-    set_servos(bCenter, aCenter, cOpen, 1);
+    set_servos(bCenter, aCenter, cOpen, 2);
 }
 void grabBigCube2() {
     set_servos(bBigCube, aBigCube, cOpen, 2); //aliging for yellow cube A
     set_servos(bBigCube, aBigCube, cBigCube, 2);// grabbing yellow cube A
     drive(-1, 500, 4);
     set_servos(bDrop, aDrop, cOpen, 2);
-    set_servos(bCenter, aCenter, cOpen, 1);
+    set_servos(bCenter, aCenter, cOpen, 2);
 }
 void grabCube() {
-    set_servos(bPomA,aPomA, cOpen, 2);
+    set_servos(bCube,aCube, cOpen, 2);
     set_servos(bPomA,aPomA, cCube, 2);
     set_servos(bDrop, aDrop, cOpen, 2);
-    set_servos(bCenter, aCenter, cOpen, 1);
+    set_servos(bCenter, aCenter, cOpen, 2);
 }
 
 void start_servos()
@@ -366,6 +368,8 @@ void start_servos()
     set_servo_position(claw, realClaw);
     msleep(200);
     disable_servos();
+    enable_servos(sweep);
+    set_servo_position(sweep, realSweep);
 }
 
 void center_arm() {
